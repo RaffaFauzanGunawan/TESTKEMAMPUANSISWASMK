@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Awaken Your Skill</title>
+<style>
+  :root{
+    --bg:#12121a; --bg2:#191924; --panel:#1e1e2c; --panel-2:#242435; --line:#33334a;
+    --text:#eceaf4; --muted:#8d8ba3; --accent:#4fe0c9; --accent-dim:#2c8f80;
+    --gold:#f2b84b; --danger:#e0654f; --radius:10px;
+  }
+  body.light{
+    --bg:#f2f1ec; --bg2:#e9e7de; --panel:#ffffff; --panel-2:#f5f4ee; --line:#d8d5c8;
+    --text:#1c1b18; --muted:#6b685c; --accent:#1c8f7c; --accent-dim:#c8ede5;
+    --gold:#b5811a; --danger:#b23c28;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background: radial-gradient(circle at 20% -10%, var(--bg2), var(--bg) 60%);
+    color:var(--text); font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height:100vh; transition: background .3s, color .3s; overflow-x:hidden;
+  }
+  .screen{ display:none; min-height:100vh; }
+  .screen.active{ display:flex; flex-direction:column; }
+  button{ font-family:inherit; cursor:pointer; border:none; }
+  input, select{ font-family:inherit; }
+
+  #screen-landing{ align-items:center; justify-content:center; text-align:center; position:relative; padding:24px; }
+  .brand-mark{ position:relative; display:flex; flex-direction:column; align-items:center; gap:34px; }
+  .brand-tag{ font-size:12px; letter-spacing:.35em; color:var(--accent); font-weight:600; }
+  .brand-title{
+    font-size:clamp(36px, 8vw, 84px); font-weight:800; letter-spacing:2px; line-height:1.02;
+    background:linear-gradient(120deg, var(--text) 40%, var(--accent) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .brand-sub{ color:var(--muted); max-width:520px; font-size:15px; line-height:1.6; }
+  .landing-actions{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+  .btn{
+    padding:13px 28px; border-radius:999px; font-size:14px; font-weight:600;
+    background:var(--panel); color:var(--text); border:1px solid var(--line);
+    transition: transform .15s, border-color .15s, background .15s;
+  }
+  .btn:hover{ transform:translateY(-2px); border-color:var(--accent); }
+  .btn-primary{ background:var(--accent); color:#0c1c19; border-color:var(--accent); }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:transparent; }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  .orb{
+    position:absolute; width:420px; height:420px; border-radius:50%;
+    background:radial-gradient(circle, var(--accent-dim), transparent 70%);
+    opacity:.35; filter:blur(10px); top:-120px; left:50%; transform:translateX(-50%); pointer-events:none;
+  }
+
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:50; padding:16px; }
+  .modal-backdrop.active{ display:flex; }
+  .modal{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:26px; width:100%; max-width:340px; }
+  .modal h3{ font-size:16px; margin-bottom:18px; }
+  .toggle-row{ display:flex; gap:10px; margin-bottom:20px; }
+  .toggle-opt{ flex:1; padding:14px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); text-align:center; font-size:13px; font-weight:600; color:var(--muted); }
+  .toggle-opt.selected{ border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+  .modal-close{ width:100%; padding:11px; border-radius:8px; background:var(--panel-2); color:var(--text); border:1px solid var(--line); font-size:13px; }
+
+  #screen-login{ align-items:center; justify-content:center; padding:24px; }
+  .login-card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:34px; width:100%; max-width:400px; }
+  .login-card h2{ font-size:22px; margin-bottom:6px; }
+  .login-card p.hint{ color:var(--muted); font-size:13px; margin-bottom:24px; }
+  .field{ margin-bottom:16px; text-align:left; }
+  .field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600; }
+  .field input, .field select{ width:100%; padding:11px 13px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); font-size:14px; }
+  .field input:focus, .field select:focus{ outline:2px solid var(--accent); }
+  .login-actions{ display:flex; gap:10px; margin-top:22px; }
+  .login-actions .btn{ flex:1; }
+  .form-error{ color:var(--danger); font-size:12px; margin-top:-8px; margin-bottom:12px; display:none; }
+
+  #screen-app{ min-height:100vh; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:16px 26px; border-bottom:1px solid var(--line); background:var(--bg2); position:sticky; top:0; z-index:10; flex-wrap:wrap; gap:10px; }
+  .topbar-left{ display:flex; align-items:center; gap:12px; }
+  .logo-mini{ font-weight:800; letter-spacing:.5px; font-size:15px; }
+  .logo-mini span{ color:var(--accent); }
+  .major-pill{ font-size:11px; padding:4px 10px; border-radius:999px; background:var(--panel-2); border:1px solid var(--line); color:var(--muted); }
+  .topbar-right{ display:flex; align-items:center; gap:10px; }
+  .coin-badge{ display:flex; align-items:center; gap:6px; background:var(--panel-2); border:1px solid var(--line); padding:7px 14px; border-radius:999px; font-size:13px; font-weight:700; color:var(--gold); }
+  .nav-btn{ padding:8px 14px; border-radius:8px; font-size:13px; background:transparent; color:var(--muted); border:1px solid transparent; }
+  .nav-btn:hover{ color:var(--text); border-color:var(--line); }
+  .nav-btn.active{ color:var(--accent); border-color:var(--accent); }
+
+  .app-body{ padding:30px 26px 60px; max-width:1080px; margin:0 auto; width:100%; }
+  .section-head{ margin-bottom:22px; }
+  .section-head h1{ font-size:24px; margin-bottom:6px; }
+  .section-head p{ color:var(--muted); font-size:14px; }
+
+  .game-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:16px; }
+  .game-card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s, transform .15s; }
+  .game-card:hover{ border-color:var(--accent); transform:translateY(-3px); }
+  .game-icon{ font-size:28px; }
+  .game-card h3{ font-size:15px; }
+  .game-card p{ font-size:12.5px; color:var(--muted); line-height:1.5; flex:1; }
+  .game-meta{ display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted); flex-wrap:wrap; gap:6px; }
+  .badge-done{ color:var(--accent); font-weight:700; }
+  .badge-reward{ color:var(--gold); font-weight:700; }
+  .type-badge{ font-size:10px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+  .game-card .btn{ width:100%; text-align:center; }
+
+  .game-play{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:28px; max-width:640px; margin:0 auto; }
+  .game-play h2{ font-size:19px; margin-bottom:4px; }
+  .game-play .progress-line{ font-size:12px; color:var(--muted); margin-bottom:22px; }
+  .question-block{ margin-bottom:22px; }
+  .question-block p.q{ font-size:15px; margin-bottom:14px; line-height:1.5; }
+  .opt-list{ display:flex; flex-direction:column; gap:10px; }
+  .opt{ text-align:left; padding:12px 14px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); font-size:13.5px; }
+  .opt:hover{ border-color:var(--accent); }
+  .opt.correct{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); font-weight:700; }
+  .opt.wrong{ border-color:var(--danger); background:rgba(224,101,79,.15); color:var(--danger); font-weight:700; }
+  .opt:disabled{ cursor:default; }
+  .color-opt-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(80px,1fr)); gap:10px; }
+  .color-opt{ height:56px; border-radius:8px; border:2px solid var(--line); }
+  .color-opt:hover{ border-color:var(--text); }
+  .game-result{ text-align:center; padding:10px 0; }
+  .game-result .big-coin{ font-size:40px; margin-bottom:8px; }
+  .game-result h3{ font-size:20px; margin-bottom:6px; }
+  .game-result p{ color:var(--muted); font-size:13.5px; margin-bottom:22px; }
+  .back-link{ font-size:12px; color:var(--muted); margin-bottom:18px; display:inline-block; }
+  .back-link:hover{ color:var(--accent); }
+  .loading-block{ text-align:center; padding:30px 10px; color:var(--muted); font-size:13px; }
+  .spinner{ width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--accent); margin:0 auto 14px; animation:spin 0.8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .source-tag{ font-size:10.5px; padding:2px 9px; border-radius:999px; border:1px solid var(--line); color:var(--muted); margin-left:8px; vertical-align:middle; }
+  .source-tag.ai{ color:var(--accent); border-color:var(--accent); }
+
+  /* match game */
+  .match-board{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .match-col{ display:flex; flex-direction:column; gap:8px; }
+  .match-item{ padding:11px 12px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); font-size:12.5px; text-align:left; line-height:1.4; }
+  .match-item.selected{ border-color:var(--accent); background:var(--accent-dim); }
+  .match-item.locked.correct{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); opacity:.7; cursor:default; }
+  .match-item.wrong-flash{ border-color:var(--danger); background:rgba(224,101,79,.15); }
+
+  /* sequence game */
+  .chosen-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; min-height:10px; }
+  .chosen-step{ padding:10px 12px; border-radius:8px; background:var(--panel-2); border:1px solid var(--line); font-size:13px; }
+  .chosen-step.seq-correct{ border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+  .chosen-step.seq-wrong{ border-color:var(--danger); color:var(--danger); background:rgba(224,101,79,.15); }
+
+  /* memory game (kartu flip 3D sungguhan) */
+  .memory-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(110px,1fr)); gap:10px; }
+  .memory-card-slot{ perspective:800px; }
+  .memory-card-inner{ position:relative; width:100%; height:78px; transform-style:preserve-3d; transition:transform .45s; cursor:pointer; }
+  .memory-card-inner.flipped{ transform:rotateY(180deg); }
+  .memory-card-inner.matched{ cursor:default; }
+  .memory-face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:8px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; text-align:center; padding:8px; font-size:12px; line-height:1.3; }
+  .memory-face.front{ background:var(--panel-2); color:var(--muted); font-size:24px; }
+  .memory-face.back{ background:var(--panel); color:var(--text); border-color:var(--accent); transform:rotateY(180deg); }
+  .memory-card-inner.matched .memory-face.back{ background:var(--accent-dim); color:var(--accent); }
+
+  /* drag cursor hints */
+  .match-item[draggable]{ cursor:grab; }
+  .match-item[draggable]:active{ cursor:grabbing; }
+  .chosen-step[draggable]{ cursor:grab; }
+  .opt[draggable]{ cursor:grab; }
+  .sort-item[draggable]{ cursor:grab; }
+
+  /* sort (drag ke kategori) game */
+  .sort-pool{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .sort-item{ padding:9px 14px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); font-size:13px; }
+  .sort-item.selected{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+  .sort-bins{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px; }
+  .sort-bin{ border:2px dashed var(--line); border-radius:10px; padding:14px; min-height:120px; transition:border-color .15s; }
+  .sort-bin h4{ font-size:13px; margin-bottom:10px; color:var(--muted); }
+  .sort-bin.wrong-flash{ border-color:var(--danger); }
+  .sort-bin-item{ padding:7px 10px; border-radius:6px; background:var(--accent-dim); color:var(--accent); font-size:12px; margin-bottom:6px; }
+
+  /* typing game */
+  .query-box{ background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px; font-family:'Consolas', monospace; font-size:13.5px; margin-bottom:14px; }
+  .blank{ color:var(--gold); font-weight:700; }
+  .typing-input{ width:100%; padding:11px 13px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); font-size:14px; font-family:'Consolas', monospace; }
+  .typing-feedback{ margin-top:10px; font-size:13px; font-weight:600; min-height:18px; }
+
+  .profile-grid{ display:grid; grid-template-columns:280px 1fr; gap:24px; }
+  @media (max-width:720px){ .profile-grid{ grid-template-columns:1fr; } .match-board{ grid-template-columns:1fr; } }
+  .avatar-card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:24px; text-align:center; }
+  .avatar-stage{ width:150px; height:190px; margin:0 auto 18px; position:relative; --avatar-color:#4fe0c9; --avatar-outline:#1f8c7c; }
+  .avatar-stage svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .avatar-accessory{ position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:26px; z-index:3; pointer-events:none; filter:drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+  .profile-name{ font-size:17px; font-weight:700; }
+  .profile-detail{ color:var(--muted); font-size:12.5px; margin-top:4px; line-height:1.6; }
+  .coin-line{ margin-top:14px; font-weight:700; color:var(--gold); font-size:15px; }
+
+  .outfit-panel{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; }
+  .outfit-tabs{ display:flex; gap:8px; margin-bottom:18px; }
+  .outfit-tab{ padding:7px 16px; border-radius:999px; font-size:12.5px; background:var(--panel-2); color:var(--muted); border:1px solid var(--line); }
+  .outfit-tab.active{ color:var(--accent); border-color:var(--accent); }
+  .outfit-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:12px; }
+  .outfit-item{ border:1px solid var(--line); border-radius:8px; padding:14px; text-align:center; background:var(--panel-2); }
+  .outfit-swatch{ width:44px; height:44px; border-radius:10px; margin:0 auto 10px; font-size:22px; display:flex; align-items:center; justify-content:center; }
+  .outfit-item h4{ font-size:12.5px; margin-bottom:4px; }
+  .outfit-item .price{ font-size:11px; color:var(--gold); margin-bottom:10px; }
+  .outfit-item button{ width:100%; padding:7px; border-radius:6px; font-size:11.5px; font-weight:700; background:var(--panel); border:1px solid var(--line); color:var(--text); }
+  .outfit-item button.equipped{ background:var(--accent); color:#0c1c19; border-color:var(--accent); }
+  .outfit-item button:disabled{ opacity:.45; cursor:not-allowed; }
+
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--accent); color:var(--text); padding:12px 22px; border-radius:999px; font-size:13px; z-index:100; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  ::selection{ background:var(--accent); color:#0c1c19; }
+</style>
+</head>
+<body>
+
+<section id="screen-landing" class="screen active">
+  <div class="orb"></div>
+  <div class="brand-mark">
+    <div class="brand-tag">SMK SKILL PLATFORM</div>
+    <div class="brand-title">AWAKEN<br>YOUR SKILL</div>
+    <p class="brand-sub">Asah kompetensi jurusanmu lewat game yang beragam — kuis, mencocokkan, mengurutkan, kartu ingatan, sampai ketik jawaban. Kumpulkan koin dan lengkapi karaktermu.</p>
+    <div class="landing-actions">
+      <button class="btn btn-primary" onclick="goTo('screen-login')">Masuk</button>
+      <button class="btn" onclick="openSettings()">Setting</button>
+      <button class="btn btn-ghost" onclick="exitWeb()">Keluar</button>
+    </div>
+  </div>
+</section>
+
+<div class="modal-backdrop" id="settings-modal">
+  <div class="modal">
+    <h3>Tampilan</h3>
+    <div class="toggle-row">
+      <button class="toggle-opt" id="opt-dark" onclick="setTheme('dark')">Dark Mode</button>
+      <button class="toggle-opt" id="opt-light" onclick="setTheme('light')">Light Mode</button>
+    </div>
+    <button class="modal-close" onclick="closeSettings()">Tutup</button>
+  </div>
+</div>
+
+<section id="screen-login" class="screen">
+  <div class="login-card">
+    <h2>Isi Data Diri</h2>
+    <p class="hint">Data ini menentukan game skill yang akan kamu mainkan.</p>
+    <div class="field">
+      <label>Nama</label>
+      <input type="text" id="input-nama" placeholder="Nama lengkap">
+    </div>
+    <div class="field">
+      <label>Jurusan</label>
+      <select id="input-jurusan"></select>
+      <p class="hint" id="jurusan-lock-note" style="display:none; margin-top:6px; color:var(--accent);"></p>
+    </div>
+    <div class="field">
+      <label>Kelas</label>
+      <input type="text" id="input-kelas" placeholder="Contoh: XI RPL 1">
+    </div>
+    <p class="form-error" id="login-error">Mohon lengkapi semua data terlebih dahulu.</p>
+    <div class="login-actions">
+      <button class="btn" onclick="goTo('screen-landing')">Kembali</button>
+      <button class="btn btn-primary" onclick="submitLogin()">Mulai</button>
+    </div>
+  </div>
+</section>
+
+<section id="screen-app" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-mini">AWAKEN<span>.</span>SKILL</div>
+      <div class="major-pill" id="topbar-major">-</div>
+    </div>
+    <div class="topbar-right">
+      <button class="nav-btn active" id="nav-games" onclick="showView('games')">Games</button>
+      <button class="nav-btn" id="nav-profile" onclick="showView('profile')">Profil</button>
+      <div class="coin-badge">🪙 <span id="coin-count">0</span></div>
+      <button class="nav-btn" onclick="openSettings()">⚙</button>
+      <button class="nav-btn" onclick="logout()">Keluar</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div id="view-games">
+      <div class="section-head">
+        <h1>Skill Games</h1>
+        <p id="games-sub">Game disesuaikan dengan jurusanmu.</p>
+      </div>
+      <div class="game-grid" id="game-grid"></div>
+    </div>
+
+    <div id="view-play" style="display:none;">
+      <a class="back-link" onclick="showView('games')">← Kembali ke daftar game</a>
+      <div class="game-play" id="game-play-container"></div>
+    </div>
+
+    <div id="view-profile" style="display:none;">
+      <div class="section-head">
+        <h1>Profil</h1>
+        <p>Kelola karakter dan lihat progresmu.</p>
+      </div>
+      <div class="profile-grid">
+        <div class="avatar-card">
+          <div class="avatar-stage">
+            <svg viewBox="0 0 150 190" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="clipHead"><circle cx="75" cy="42" r="40"/></clipPath>
+                <clipPath id="clipBody"><path d="M75,68 C40,68 15,95 8,150 C4,175 15,188 40,188 L110,188 C135,188 146,175 142,150 C135,95 110,68 75,68 Z"/></clipPath>
+                <linearGradient id="avatarShadowGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0.5" stop-color="#000000" stop-opacity="0"/>
+                  <stop offset="1" stop-color="#000000" stop-opacity="0.32"/>
+                </linearGradient>
+              </defs>
+
+              <path d="M75,68 C40,68 15,95 8,150 C4,175 15,188 40,188 L110,188 C135,188 146,175 142,150 C135,95 110,68 75,68 Z"
+                    fill="var(--avatar-color)" stroke="var(--avatar-outline)" stroke-width="4"/>
+              <circle cx="75" cy="42" r="40" fill="var(--avatar-color)" stroke="var(--avatar-outline)" stroke-width="4"/>
+
+              <rect x="0" y="0" width="150" height="190" fill="url(#avatarShadowGrad)" clip-path="url(#clipBody)" style="mix-blend-mode:multiply;"/>
+              <ellipse cx="45" cy="112" rx="16" ry="42" fill="#ffffff" opacity="0.28" clip-path="url(#clipBody)" style="mix-blend-mode:screen;" transform="rotate(-12 45 112)"/>
+
+              <rect x="0" y="0" width="150" height="190" fill="url(#avatarShadowGrad)" clip-path="url(#clipHead)" style="mix-blend-mode:multiply;"/>
+              <ellipse cx="60" cy="26" rx="15" ry="10" fill="#ffffff" opacity="0.65" clip-path="url(#clipHead)" style="mix-blend-mode:screen;"/>
+              <ellipse cx="92" cy="56" rx="9" ry="6" fill="#ffffff" opacity="0.18" clip-path="url(#clipHead)" style="mix-blend-mode:screen;"/>
+            </svg>
+            <div class="avatar-accessory" id="avatar-accessory"></div>
+          </div>
+          <div class="profile-name" id="profile-name">-</div>
+          <div class="profile-detail" id="profile-detail">-</div>
+          <div class="coin-line">🪙 <span id="profile-coins">0</span> koin</div>
+        </div>
+        <div class="outfit-panel">
+          <div class="outfit-tabs">
+            <button class="outfit-tab active" id="tab-body" onclick="setOutfitTab('body')">Baju</button>
+            <button class="outfit-tab" id="tab-head" onclick="setOutfitTab('head')">Aksesoris</button>
+          </div>
+          <div class="outfit-grid" id="outfit-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Data disimpan di memori JS (bukan MySQL sungguhan) supaya
+   file ini berjalan mandiri sebagai prototipe. Lihat schema.sql
+   terpisah untuk rancangan database produksi.
+
+   MEKANIK GAME (bervariasi per game, bukan cuma pilihan ganda):
+   - quiz     : pilihan ganda (soal baru dibuat AI + fallback bank lokal)
+   - color    : cocokkan warna dengan target
+   - match    : klik-pasangkan istilah kiri dengan penjelasan kanan
+   - sequence : susun langkah-langkah ke urutan yang benar
+   - memory   : buka kartu, cocokkan istilah dengan penjelasannya
+   - typing   : ketik jawaban untuk melengkapi query/pernyataan
+========================================================= */
+
+// Menggelapkan warna hex sebesar `percent` (0-1) — dipakai untuk membuat
+// outline avatar otomatis lebih gelap dari warna baju yang sedang dipakai,
+// supaya avatar SVG tetap terlihat "glossy" walau warnanya diganti-ganti.
+function shadeColor(hex, percent){
+  const num = parseInt(hex.replace("#",""), 16);
+  let r = (num >> 16) + Math.round(255 * percent);
+  let g = ((num >> 8) & 0x00FF) + Math.round(255 * percent);
+  let b = (num & 0x0000FF) + Math.round(255 * percent);
+  r = Math.min(255, Math.max(0, r));
+  g = Math.min(255, Math.max(0, g));
+  b = Math.min(255, Math.max(0, b));
+  return "#" + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+}
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function prepareQuizQuestion(q){
+  const correctText = q.opts[q.a];
+  const opts = shuffleArray(q.opts);
+  return { q: q.q, opts, a: opts.indexOf(correctText) };
+}
+function prepareColorRound(r){
+  return { target: r.target, options: shuffleArray(r.options) };
+}
+
+const TYPE_LABEL = { quiz:"Kuis", color:"Cocok Warna", match:"Cocokkan (Drag)", sequence:"Urutkan (Drag)", memory:"Kartu Flip", typing:"Ketik Jawaban", sort:"Seret ke Kategori" };
+
+/* ---------- DATA: JURUSAN & GAMES ---------- */
+const MAJORS = {
+  rpl: {
+    label: "Rekayasa Perangkat Lunak",
+    desc: "Mempelajari pembuatan aplikasi dan pemrograman.",
+    games: [
+      { id:"calc", icon:"➗", title:"Calculus Quest", desc:"Selesaikan soal kalkulus dasar yang sering muncul di logika pemrograman.", reward:30, type:"quiz", playCount:5,
+        pool:[
+          {q:"Turunan dari f(x) = x² adalah...", opts:["2x","x","2","x²"], a:0},
+          {q:"Hasil dari ∫2x dx adalah...", opts:["x² + C","2x² + C","x + C","2 + C"], a:0},
+          {q:"Nilai limit x→2 dari (x²-4)/(x-2) adalah...", opts:["2","4","0","tidak terdefinisi"], a:1},
+          {q:"Turunan dari f(x) = 3x³ adalah...", opts:["9x²","3x²","6x","x²"], a:0},
+          {q:"Nilai dari 2² + 3² adalah...", opts:["13","12","10","6"], a:0},
+          {q:"Akar dari 49 adalah...", opts:["7","6","8","49"], a:0},
+        ]},
+      { id:"syntax", icon:"🧩", title:"Knowing Syntax", desc:"Buka kartu dan cocokkan potongan syntax dengan bahasa pemrogramannya.", reward:25, type:"memory", playCount:4,
+        pairs:[
+          {term:"console.log()", def:"JavaScript"},
+          {term:"# komentar satu baris", def:"Python"},
+          {term:"<?php ... ?>", def:"PHP"},
+          {term:"def nama_fungsi():", def:"Python"},
+          {term:"public static void main", def:"Java"},
+          {term:"SELECT * FROM", def:"SQL"},
+        ]},
+      { id:"writecode", icon:"💻", title:"How To Write A Code", desc:"Susun langkah algoritma ke urutan logika yang benar.", reward:25, type:"sequence",
+        scenarios:[
+          {title:"Algoritma menghitung rata-rata nilai", steps:["Input semua nilai siswa","Jumlahkan seluruh nilai","Bagi total nilai dengan banyaknya data","Tampilkan hasil rata-rata"]},
+          {title:"Algoritma mengecek bilangan genap/ganjil", steps:["Input sebuah bilangan","Bagi bilangan tersebut dengan 2","Cek sisa hasil pembagian (modulus)","Jika sisa 0 maka genap, jika tidak maka ganjil"]},
+          {title:"Algoritma proses login sederhana", steps:["Input username dan password","Cocokkan dengan data di database","Jika cocok, izinkan pengguna masuk","Jika tidak cocok, tampilkan pesan error"]},
+        ]},
+      { id:"sqldetective", icon:"🕵️", title:"SQL Detective", desc:"Lengkapi query yang hilang untuk memecahkan setiap kasus.", reward:35, type:"typing", playCount:4,
+        pool:[
+          {scenario:"Detektif ingin menampilkan SEMUA data dari tabel siswa. Lengkapi query-nya.", query:"SELECT * ____ siswa;", answer:"FROM"},
+          {scenario:"Untuk mempersempit pencarian hanya siswa kelas 'XII RPL 1', lengkapi query berikut.", query:"SELECT * FROM siswa ____ kelas = 'XII RPL 1';", answer:"WHERE"},
+          {scenario:"Kasus baru: lengkapi perintah untuk menambahkan data siswa baru ke tabel.", query:"____ siswa (nama, kelas) VALUES ('Andi','XII RPL 1');", answer:"INSERT INTO"},
+          {scenario:"Nama siswa salah ketik di database. Lengkapi perintah untuk memperbaikinya.", query:"____ siswa SET nama = 'Andi' WHERE id = 5;", answer:"UPDATE"},
+          {scenario:"Seorang siswa pindah sekolah. Lengkapi perintah untuk menghapus datanya.", query:"____ FROM siswa WHERE id = 5;", answer:"DELETE"},
+        ]},
+      { id:"datatypesort", icon:"🗂️", title:"Tipe Data Sort", desc:"Seret setiap tipe data ke kategori Primitive atau Non-Primitive.", reward:25, type:"sort", playCount:6,
+        categories:["Primitive","Non-Primitive"],
+        items:[
+          {text:"Integer (int)", cat:"Primitive"},
+          {text:"Boolean", cat:"Primitive"},
+          {text:"Float/Double", cat:"Primitive"},
+          {text:"Character (char)", cat:"Primitive"},
+          {text:"Array", cat:"Non-Primitive"},
+          {text:"Object", cat:"Non-Primitive"},
+          {text:"String", cat:"Non-Primitive"},
+          {text:"Class", cat:"Non-Primitive"},
+        ]},
+      { id:"gitmatch", icon:"🗃️", title:"Version Control Match", desc:"Cocokkan perintah Git dengan fungsinya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"git commit", right:"Menyimpan perubahan ke riwayat lokal"},
+          {left:"git push", right:"Mengirim perubahan ke repository remote"},
+          {left:"git pull", right:"Mengambil & menggabungkan perubahan dari remote"},
+          {left:"git clone", right:"Menyalin seluruh repository ke komputer lokal"},
+          {left:"git branch", right:"Membuat/menampilkan cabang pengembangan"},
+        ]},
+    ]
+  },
+  tkj: {
+    label: "Teknik Komputer Jaringan",
+    desc: "Mempelajari instalasi jaringan komputer dan internet.",
+    games: [
+      { id:"cable", icon:"🔌", title:"Cable Match", desc:"Cocokkan jenis kabel/alat dengan fungsinya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Kabel UTP", right:"Digunakan untuk jaringan LAN"},
+          {left:"Konektor RJ45", right:"Dipasang di ujung kabel UTP"},
+          {left:"Kabel Fiber Optik", right:"Mentransmisikan data dengan cahaya"},
+          {left:"Crimping Tool", right:"Alat memasang konektor RJ45"},
+          {left:"Kabel Straight", right:"Menghubungkan perangkat berbeda jenis"},
+          {left:"Kabel Cross", right:"Menghubungkan perangkat sejenis"},
+        ]},
+      { id:"ipaddr", icon:"🌐", title:"IP Address Quiz", desc:"Uji pemahamanmu tentang subnetting dan pengalamatan IP.", reward:25, type:"quiz", playCount:5,
+        pool:[
+          {q:"192.168.1.1 termasuk kelas IP...", opts:["C","A","B","D"], a:0},
+          {q:"Subnet mask default kelas C adalah...", opts:["255.255.255.0","255.0.0.0","255.255.0.0","255.255.255.255"], a:0},
+          {q:"IP 127.0.0.1 dikenal sebagai...", opts:["Localhost","Broadcast","Gateway","DNS"], a:0},
+          {q:"IP versi yang menggunakan 128 bit adalah...", opts:["IPv6","IPv4","IPv3","IPv2"], a:0},
+          {q:"Alamat untuk mengirim data ke semua host dalam jaringan disebut...", opts:["Broadcast","Unicast","Multicast","Loopback"], a:0},
+          {q:"Default gateway berfungsi sebagai...", opts:["Pintu keluar ke jaringan lain","Penyimpan file","Pengatur warna layar","Pemutar musik"], a:0},
+        ]},
+      { id:"topology", icon:"🕸️", title:"Topology Detective", desc:"Kenali berbagai topologi jaringan dan karakteristiknya.", reward:25, type:"quiz", playCount:5,
+        pool:[
+          {q:"Topologi yang menghubungkan semua perangkat ke satu titik pusat disebut...", opts:["Star","Ring","Bus","Mesh"], a:0},
+          {q:"Topologi yang membentuk lingkaran tertutup disebut...", opts:["Ring","Star","Bus","Tree"], a:0},
+          {q:"Kelebihan topologi mesh adalah...", opts:["Sangat andal karena banyak jalur","Paling murah","Paling sedikit kabel","Tidak perlu perangkat"], a:0},
+          {q:"Topologi yang menggunakan satu kabel utama disebut...", opts:["Bus","Star","Ring","Mesh"], a:0},
+          {q:"Perangkat penghubung utama pada topologi star disebut...", opts:["Switch/Hub","Modem","Repeater kabel","Router saja"], a:0},
+        ]},
+      { id:"protocol", icon:"📡", title:"Protocol Quiz", desc:"Buka kartu dan cocokkan protokol jaringan dengan fungsinya.", reward:25, type:"memory", playCount:4,
+        pairs:[
+          {term:"HTTP", def:"Membuka halaman web"},
+          {term:"SMTP", def:"Mengirim email"},
+          {term:"DHCP", def:"Membagikan alamat IP otomatis"},
+          {term:"DNS", def:"Menerjemahkan nama domain ke IP"},
+          {term:"SSH", def:"Remote login yang aman"},
+        ]},
+      { id:"osilayer", icon:"📶", title:"OSI Layer Sequence", desc:"Susun 7 lapisan model OSI dari yang paling bawah ke atas.", reward:30, type:"sequence",
+        scenarios:[
+          {title:"Urutan lapisan model OSI (dari bawah ke atas)", steps:["Physical Layer","Data Link Layer","Network Layer","Transport Layer","Session Layer","Presentation Layer","Application Layer"]},
+        ]},
+      { id:"devicesort", icon:"🗄️", title:"Perangkat Jaringan Sort", desc:"Seret setiap perangkat ke kategori Perangkat Aktif atau Media Transmisi.", reward:25, type:"sort", playCount:6,
+        categories:["Perangkat Aktif","Media Transmisi"],
+        items:[
+          {text:"Router", cat:"Perangkat Aktif"},
+          {text:"Switch", cat:"Perangkat Aktif"},
+          {text:"Access Point", cat:"Perangkat Aktif"},
+          {text:"Hub", cat:"Perangkat Aktif"},
+          {text:"Kabel UTP", cat:"Media Transmisi"},
+          {text:"Kabel Fiber Optik", cat:"Media Transmisi"},
+          {text:"Kabel Coaxial", cat:"Media Transmisi"},
+        ]},
+    ]
+  },
+  multimedia: {
+    label: "Multimedia",
+    desc: "Mempelajari desain grafis, animasi, dan video.",
+    games: [
+      { id:"colormatch", icon:"🎨", title:"Color Grading", desc:"Pilih warna yang paling cocok dengan warna target pada layar.", reward:25, type:"color", playCount:4,
+        pool:[
+          { target:"#e0654f", options:["#e0654f","#4fe0c9","#f2b84b","#5b5be0"] },
+          { target:"#4fe0c9", options:["#f2b84b","#e0654f","#4fe0c9","#8b8ba0"] },
+          { target:"#f2b84b", options:["#5b5be0","#f2b84b","#e0654f","#4fe0c9"] },
+          { target:"#5b5be0", options:["#5b5be0","#4fe0c9","#f2b84b","#8b8ba0"] },
+          { target:"#8b8ba0", options:["#e0654f","#8b8ba0","#4fe0c9","#f2b84b"] },
+        ]},
+      { id:"timing", icon:"🎞️", title:"Animation Timing", desc:"Pahami prinsip dasar timing dan easing pada animasi.", reward:25, type:"quiz", playCount:5,
+        pool:[
+          {q:"Prinsip animasi yang mengatur percepatan/perlambatan gerak disebut...", opts:["Easing","Squash and Stretch","Anticipation","Staging"], a:0},
+          {q:"Frame per second yang umum untuk video halus adalah...", opts:["24-30 fps","1 fps","5 fps","1000 fps"], a:0},
+          {q:"Format video yang umum untuk web adalah...", opts:["MP4","PSD","AI","RAW"], a:0},
+          {q:"Prinsip animasi 'antisipasi' berguna untuk...", opts:["Memberi ancang-ancang sebelum gerakan utama","Mempercepat render","Mengurangi ukuran file","Menambah warna"], a:0},
+          {q:"Format gambar yang mendukung transparansi adalah...", opts:["PNG","JPG","BMP","TIFF tanpa alpha"], a:0},
+          {q:"Software umum untuk animasi 2D adalah...", opts:["Adobe Animate","Excel","AutoCAD","Notepad"], a:0},
+        ]},
+      { id:"layer", icon:"🖼️", title:"Layer Composition", desc:"Cocokkan istilah desain dengan penjelasannya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Multiply", right:"Blending mode yang menggelapkan gambar"},
+          {left:"Layer", right:"Lapisan untuk menggabungkan elemen desain"},
+          {left:"DPI/PPI", right:"Satuan resolusi gambar"},
+          {left:"SVG", right:"Format vektor yang tidak pecah saat diperbesar"},
+          {left:"Pen Tool", right:"Alat masking/seleksi presisi"},
+        ]},
+      { id:"editflow", icon:"🎬", title:"Alur Kerja Editing", desc:"Susun tahapan proses editing/desain ke urutan yang tepat.", reward:25, type:"sequence",
+        scenarios:[
+          {title:"Alur kerja dasar mengedit video", steps:["Import footage mentah","Cut/trim bagian yang tidak perlu","Susun urutan klip di timeline","Color grading & tambahkan efek","Render dan export video"]},
+          {title:"Alur kerja membuat poster digital", steps:["Tentukan konsep dan referensi","Buat sketsa/layout dasar","Tambahkan elemen visual & teks","Atur warna dan komposisi","Export dalam format final"]},
+        ]},
+      { id:"softwarematch", icon:"🧰", title:"Software Multimedia Match", desc:"Cocokkan software dengan kegunaan utamanya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Adobe Photoshop", right:"Mengedit dan memanipulasi foto/gambar raster"},
+          {left:"Adobe Premiere Pro", right:"Mengedit video"},
+          {left:"Adobe Illustrator", right:"Membuat gambar vektor"},
+          {left:"Adobe After Effects", right:"Membuat motion graphic & visual effect"},
+          {left:"Audacity", right:"Merekam dan mengedit audio"},
+        ]},
+      { id:"formatsort", icon:"📁", title:"Format File Sort", desc:"Seret setiap format file ke kategori Gambar, Video, atau Audio.", reward:25, type:"sort", playCount:6,
+        categories:["Gambar","Video","Audio"],
+        items:[
+          {text:"JPG", cat:"Gambar"},
+          {text:"PNG", cat:"Gambar"},
+          {text:"MP4", cat:"Video"},
+          {text:"MOV", cat:"Video"},
+          {text:"MP3", cat:"Audio"},
+          {text:"WAV", cat:"Audio"},
+        ]},
+    ]
+  },
+  tkr: {
+    label: "Teknik Kendaraan Ringan",
+    desc: "Mempelajari perbaikan dan perawatan mobil.",
+    games: [
+      { id:"enginecheck", icon:"🚗", title:"Engine Diagnosis", desc:"Diagnosa gejala kerusakan mesin dan tentukan penyebabnya.", reward:30, type:"quiz", playCount:5,
+        pool:[
+          {q:"Mesin sulit dinyalakan bisa disebabkan oleh aki yang...", opts:["Lemah","Terlalu penuh","Baru","Bersih"], a:0},
+          {q:"Komponen yang mengubah bahan bakar jadi percikan api adalah...", opts:["Busi","Radiator","Knalpot","Kopling"], a:0},
+          {q:"Oli mesin berfungsi utama sebagai...", opts:["Pelumas","Pendingin AC","Pewangi","Pengisi bahan bakar"], a:0},
+          {q:"Suara ketukan pada mesin bisa disebabkan oleh...", opts:["Bahan bakar tidak sesuai (knocking)","Ban kurang angin","AC bocor","Wiper rusak"], a:0},
+          {q:"Filter udara yang kotor menyebabkan...", opts:["Pembakaran tidak sempurna","Rem blong","Ban aus","Kaca buram"], a:0},
+          {q:"Komponen yang mendinginkan mesin adalah...", opts:["Radiator","Karburator","Kopling","Knalpot"], a:0},
+        ]},
+      { id:"remsuspensi", icon:"🛞", title:"Rem & Suspensi", desc:"Cocokkan komponen rem/suspensi dengan fungsinya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Shock absorber", right:"Menyerap guncangan pada suspensi"},
+          {left:"Rem cakram", right:"Menjepit piringan untuk mengurangi laju"},
+          {left:"Minyak rem", right:"Cairan pada sistem rem hidrolik"},
+          {left:"Suspensi", right:"Menghubungkan roda dengan bodi mobil"},
+          {left:"Spooring", right:"Menyeimbangkan arah/sudut roda"},
+        ]},
+      { id:"gantiban", icon:"🔧", title:"Ganti Ban", desc:"Susun langkah mengganti ban mobil ke urutan yang benar.", reward:25, type:"sequence",
+        scenarios:[
+          {title:"Urutan mengganti ban mobil yang kempes", steps:["Parkir di tempat aman dan aktifkan rem tangan","Kendurkan mur roda sedikit","Dongkrak mobil hingga ban terangkat","Lepas mur dan ban yang kempes","Pasang ban cadangan","Kencangkan mur roda","Turunkan dongkrak perlahan"]},
+        ]},
+      { id:"komponenmesinmatch", icon:"🛠️", title:"Komponen Mesin Match", desc:"Cocokkan komponen mesin mobil dengan fungsinya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Piston", right:"Menghasilkan tenaga dorong dari hasil pembakaran"},
+          {left:"Karburator/Injektor", right:"Mencampur udara dan bahan bakar"},
+          {left:"Timing Belt", right:"Mengatur waktu buka-tutup katup dengan putaran mesin"},
+          {left:"Alternator", right:"Mengisi ulang daya aki saat mesin menyala"},
+          {left:"Knalpot", right:"Membuang gas sisa hasil pembakaran"},
+        ]},
+      { id:"olisort", icon:"🛢️", title:"Jenis Oli Sort", desc:"Seret setiap jenis oli ke kategori yang tepat.", reward:20, type:"sort", playCount:6,
+        categories:["Oli Mesin","Oli Transmisi/Gardan"],
+        items:[
+          {text:"Oli 10W-40", cat:"Oli Mesin"},
+          {text:"Oli 5W-30", cat:"Oli Mesin"},
+          {text:"Oli sintetik mesin", cat:"Oli Mesin"},
+          {text:"Oli gardan (differential oil)", cat:"Oli Transmisi/Gardan"},
+          {text:"Oli transmisi manual (MTF)", cat:"Oli Transmisi/Gardan"},
+          {text:"Oli transmisi otomatis (ATF)", cat:"Oli Transmisi/Gardan"},
+        ]},
+    ]
+  },
+  pemesinan: {
+    label: "Teknik Pemesinan",
+    desc: "Mempelajari cara kerja mesin produksi dan logam.",
+    games: [
+      { id:"measure", icon:"📏", title:"Precision Measure", desc:"Uji ketepatan membaca alat ukur logam.", reward:25, type:"quiz", playCount:5,
+        pool:[
+          {q:"Alat ukur presisi untuk diameter kecil adalah...", opts:["Jangka sorong","Meteran kain","Penggaris","Waterpass"], a:0},
+          {q:"Satuan yang umum untuk toleransi permesinan adalah...", opts:["Milimeter","Kilogram","Liter","Volt"], a:0},
+          {q:"Proses membentuk logam dengan mata pahat berputar disebut...", opts:["Milling","Casting","Welding","Painting"], a:0},
+          {q:"Mikrometer sekrup digunakan untuk mengukur...", opts:["Diameter/ketebalan sangat presisi","Suhu ruangan","Berat benda","Tekanan udara"], a:0},
+          {q:"Satuan kekasaran permukaan logam disebut...", opts:["Ra (Roughness average)","Newton","Volt","Watt"], a:0},
+          {q:"Alat untuk mengecek kerataan permukaan adalah...", opts:["Dial indicator","Termometer","Voltmeter","Barometer"], a:0},
+        ]},
+      { id:"prosesmesin", icon:"⚙️", title:"Proses Pemesinan", desc:"Cocokkan proses pemesinan dengan ciri khasnya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Bubut (Turning)", right:"Benda kerja berputar, pahat bergerak"},
+          {left:"Milling", right:"Pahat berputar, benda kerja bergerak"},
+          {left:"Grinding", right:"Menghaluskan permukaan hingga presisi"},
+          {left:"Chuck", right:"Alat pencekam benda kerja pada mesin bubut"},
+          {left:"Cairan pendingin", right:"Mendinginkan & melumasi pahat"},
+        ]},
+      { id:"k3bengkel", icon:"🦺", title:"K3 Bengkel", desc:"Susun prosedur keselamatan kerja ke urutan yang tepat.", reward:20, type:"sequence",
+        scenarios:[
+          {title:"Prosedur keselamatan sebelum mengoperasikan mesin bubut", steps:["Pakai APD lengkap (kacamata, sepatu safety)","Periksa kondisi mesin sebelum dinyalakan","Pastikan area kerja bersih dan aman","Nyalakan mesin sesuai SOP","Mulai proses pengerjaan dengan hati-hati"]},
+        ]},
+      { id:"alatukurmatch", icon:"📐", title:"Alat Ukur Match", desc:"Cocokkan alat ukur dengan kegunaannya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Jangka sorong", right:"Mengukur diameter luar/dalam dan kedalaman"},
+          {left:"Mikrometer sekrup", right:"Mengukur ketebalan sangat presisi"},
+          {left:"Dial indicator", right:"Mengecek kerataan/kesejajaran permukaan"},
+          {left:"Height gauge", right:"Mengukur dan menandai ketinggian benda kerja"},
+          {left:"Busur derajat", right:"Mengukur sudut"},
+        ]},
+      { id:"urutanproduksi", icon:"🔩", title:"Urutan Produksi Poros", desc:"Susun tahapan membuat poros dari bahan mentah ke urutan yang benar.", reward:30, type:"sequence",
+        scenarios:[
+          {title:"Urutan membuat poros dari bahan mentah", steps:["Potong bahan sesuai ukuran","Bubut kasar untuk membentuk dasar","Bubut halus untuk presisi ukuran","Proses gerinda untuk hasil akhir","Inspeksi ukuran dengan alat ukur presisi"]},
+        ]},
+    ]
+  },
+  gambarmesin: {
+    label: "Teknik Gambar Mesin",
+    desc: "Mempelajari perancangan dan desain teknik menggunakan komputer.",
+    games: [
+      { id:"blueprint", icon:"📐", title:"Blueprint Reader", desc:"Baca simbol dan proyeksi pada gambar teknik.", reward:25, type:"quiz", playCount:5,
+        pool:[
+          {q:"Garis putus-putus pada gambar teknik biasanya menandakan...", opts:["Garis tersembunyi","Garis sumbu","Garis potong","Garis ukuran"], a:0},
+          {q:"Proyeksi yang umum dipakai di Indonesia adalah...", opts:["Eropa (kuadran I)","Amerika saja","Isometri saja","Bebas"], a:0},
+          {q:"Software umum untuk gambar teknik 2D/3D adalah...", opts:["AutoCAD","Photoshop","Excel","Notepad"], a:0},
+          {q:"Skala 1:2 pada gambar teknik berarti...", opts:["Gambar setengah dari ukuran asli","Gambar dua kali ukuran asli","Gambar sama besar","Gambar tanpa skala"], a:0},
+          {q:"Garis tebal kontinu pada gambar teknik menunjukkan...", opts:["Garis nyata/bentuk benda","Garis sumbu","Garis potong","Garis ukuran"], a:0},
+          {q:"Huruf dan angka pada gambar teknik sebaiknya ditulis dengan...", opts:["Standar dan mudah dibaca","Gaya bebas","Huruf sambung","Warna-warni"], a:0},
+        ]},
+      { id:"simbolteknik", icon:"🔣", title:"Simbol Teknik", desc:"Buka kartu dan cocokkan simbol dengan artinya.", reward:25, type:"memory", playCount:4,
+        pairs:[
+          {term:"⌀", def:"Diameter"},
+          {term:"R (radius)", def:"Radius lengkungan"},
+          {term:"Garis putus-putus", def:"Garis tersembunyi"},
+          {term:"Garis sumbu", def:"Garis putus-titik tipis"},
+          {term:"Toleransi", def:"Batas penyimpangan ukuran yang diizinkan"},
+        ]},
+      { id:"softwarecad", icon:"🖱️", title:"Software CAD", desc:"Susun tahapan membuat gambar teknik 3D ke urutan yang benar.", reward:25, type:"sequence",
+        scenarios:[
+          {title:"Urutan membuat gambar teknik 3D di software CAD", steps:["Buat sketsa 2D dasar","Beri ukuran (dimensioning)","Extrude sketsa menjadi bentuk 3D","Tambahkan detail & finishing","Render dan export/cetak gambar"]},
+        ]},
+      { id:"jenisgarismatch", icon:"📏", title:"Jenis Garis Match", desc:"Cocokkan jenis garis pada gambar teknik dengan artinya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Garis tebal kontinu", right:"Menunjukkan garis nyata/bentuk benda"},
+          {left:"Garis putus-putus", right:"Menunjukkan garis tersembunyi"},
+          {left:"Garis putus-titik tipis", right:"Menunjukkan garis sumbu"},
+          {left:"Garis tipis kontinu", right:"Menunjukkan garis ukuran/bantu"},
+          {left:"Garis zig-zag", right:"Menunjukkan batas potongan sebagian"},
+        ]},
+      { id:"istilahgambar", icon:"🧾", title:"Istilah Gambar Teknik", desc:"Buka kartu dan cocokkan istilah dengan penjelasannya.", reward:25, type:"memory", playCount:4,
+        pairs:[
+          {term:"Etiket/Kepala gambar", def:"Kolom informasi identitas gambar teknik"},
+          {term:"Skala", def:"Perbandingan ukuran gambar dengan ukuran sebenarnya"},
+          {term:"Potongan (section)", def:"Tampilan bagian dalam benda yang dipotong"},
+          {term:"Dimensi", def:"Keterangan ukuran pada gambar"},
+          {term:"Proyeksi", def:"Cara menggambarkan bentuk 3D ke bidang 2D"},
+        ]},
+    ]
+  },
+  elektro: {
+    label: "Teknik Elektronika Industri",
+    desc: "Mempelajari sistem kontrol dan perawatan alat industri.",
+    games: [
+      { id:"circuit", icon:"🔧", title:"Circuit Troubleshoot", desc:"Temukan penyebab gangguan pada rangkaian kontrol.", reward:30, type:"quiz", playCount:5,
+        pool:[
+          {q:"Alat untuk mengukur arus, tegangan, dan resistansi adalah...", opts:["Multimeter","Obeng","Tang","Solder"], a:0},
+          {q:"Komponen yang memutus arus otomatis saat beban lebih disebut...", opts:["MCB","Kapasitor","Resistor","Dioda"], a:0},
+          {q:"PLC pada sistem kontrol industri berfungsi sebagai...", opts:["Pengendali logika","Sumber tegangan","Pendingin mesin","Penyimpan oli"], a:0},
+          {q:"Dioda berfungsi untuk...", opts:["Menyearahkan arus listrik","Menyimpan arus listrik","Memutus arus otomatis","Mendinginkan komponen"], a:0},
+          {q:"Kapasitor berfungsi untuk...", opts:["Menyimpan muatan listrik sementara","Menyearahkan arus","Memutus arus","Mendinginkan komponen"], a:0},
+          {q:"Sensor yang mendeteksi keberadaan objek tanpa sentuhan disebut...", opts:["Sensor proximity","Sensor suhu","Sensor tekanan","Sensor suara"], a:0},
+        ]},
+      { id:"komponenelektronika", icon:"🔋", title:"Komponen Elektronika", desc:"Buka kartu dan cocokkan komponen dengan fungsinya.", reward:25, type:"memory", playCount:4,
+        pairs:[
+          {term:"Resistor", def:"Menghambat arus listrik"},
+          {term:"Transistor", def:"Saklar/penguat sinyal"},
+          {term:"Dioda", def:"Menyearahkan arus listrik"},
+          {term:"Kapasitor", def:"Menyimpan muatan listrik sementara"},
+          {term:"Sensor Proximity", def:"Mendeteksi objek tanpa sentuhan"},
+        ]},
+      { id:"sistemkontrol", icon:"🏭", title:"Sistem Kontrol Industri", desc:"Susun alur kerja sistem kontrol otomatis ke urutan yang benar.", reward:30, type:"sequence",
+        scenarios:[
+          {title:"Urutan kerja sistem kontrol otomatis di industri", steps:["Sensor mendeteksi kondisi di lapangan","Sinyal dikirim ke PLC","PLC memproses logika kontrol","Aktuator menjalankan aksi fisik","Sistem kembali dipantau oleh sensor"]},
+        ]},
+      { id:"alatukurlistrik", icon:"🧯", title:"Alat Ukur Listrik Match", desc:"Cocokkan alat ukur listrik dengan fungsinya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Multimeter", right:"Mengukur tegangan, arus, dan resistansi"},
+          {left:"Osiloskop", right:"Menampilkan bentuk gelombang sinyal listrik"},
+          {left:"Tang ampere", right:"Mengukur arus tanpa memutus rangkaian"},
+          {left:"Megger", right:"Mengukur tahanan isolasi kabel/peralatan"},
+          {left:"Watt meter", right:"Mengukur daya listrik"},
+        ]},
+      { id:"instalasi", icon:"💡", title:"Instalasi Listrik Sequence", desc:"Susun langkah memasang instalasi sederhana ke urutan yang benar.", reward:25, type:"sequence",
+        scenarios:[
+          {title:"Urutan memasang instalasi saklar & stop kontak sederhana", steps:["Matikan aliran listrik dari MCB","Pasang kabel sesuai jalur instalasi","Sambungkan kabel ke saklar/stop kontak","Nyalakan kembali MCB","Uji hasil instalasi dengan tespen/multimeter"]},
+        ]},
+    ]
+  },
+  tekstil: {
+    label: "Tekstil",
+    desc: "Mempelajari bahan, pewarnaan, dan pembuatan produk tekstil.",
+    games: [
+      { id:"pewarnaankain", icon:"🧵", title:"Penyempurnaan Warna", desc:"Cocokkan warna pewarnaan kain dengan warna target.", reward:25, type:"color", playCount:4,
+        pool:[
+          { target:"#8b1e3f", options:["#8b1e3f","#2f5233","#c98a2b","#3a4a63"] },
+          { target:"#2f5233", options:["#8b1e3f","#2f5233","#c98a2b","#6b4a2f"] },
+          { target:"#c98a2b", options:["#3a4a63","#8b1e3f","#c98a2b","#2f5233"] },
+          { target:"#3a4a63", options:["#3a4a63","#c98a2b","#6b4a2f","#8b1e3f"] },
+          { target:"#6b4a2f", options:["#2f5233","#3a4a63","#8b1e3f","#6b4a2f"] },
+        ]},
+      { id:"jenisserat", icon:"🧶", title:"Jenis Serat Kain", desc:"Seret setiap jenis serat ke kategori Alami atau Sintetis yang tepat.", reward:25, type:"sort", playCount:6,
+        categories:["Alami","Sintetis"],
+        items:[
+          {text:"Kapas", cat:"Alami"},
+          {text:"Wol", cat:"Alami"},
+          {text:"Sutra", cat:"Alami"},
+          {text:"Linen (rami/flax)", cat:"Alami"},
+          {text:"Polyester", cat:"Sintetis"},
+          {text:"Nilon", cat:"Sintetis"},
+          {text:"Akrilik", cat:"Sintetis"},
+          {text:"Spandex", cat:"Sintetis"},
+        ]},
+      { id:"menjahit", icon:"✂️", title:"Teknik Menjahit & Pola", desc:"Cocokkan istilah menjahit dengan penjelasannya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Kampuh", right:"Kelebihan kain untuk jahitan sambungan"},
+          {left:"Obras", right:"Menjahit tepi kain agar tidak bertiras"},
+          {left:"Pita ukur", right:"Alat mengukur badan sebelum membuat pola"},
+          {left:"Stitch length", right:"Jarak antar setikan jahitan"},
+          {left:"Pola dasar", right:"Acuan untuk membuat berbagai model busana"},
+        ]},
+      { id:"finishingkain", icon:"🧺", title:"Perawatan & Finishing Kain", desc:"Susun proses produksi kain dari serat hingga siap jahit.", reward:20, type:"sequence",
+        scenarios:[
+          {title:"Urutan proses produksi kain dari serat hingga siap jahit", steps:["Pemintalan (serat menjadi benang)","Penenunan/perajutan (benang menjadi kain)","Pencelupan (pemberian warna)","Penyempurnaan (finishing akhir kain)","Pemotongan & penjahitan menjadi produk"]},
+        ]},
+      { id:"alatjahitmatch", icon:"🧷", title:"Alat Jahit Match", desc:"Cocokkan alat menjahit dengan fungsinya.", reward:25, type:"match", playCount:5,
+        pairs:[
+          {left:"Gunting kain", right:"Memotong kain sesuai pola"},
+          {left:"Jarum pentul", right:"Menahan pola/kain sementara sebelum dijahit"},
+          {left:"Rader", right:"Menandai garis pola pada kain"},
+          {left:"Meteran jahit", right:"Mengukur badan dan kain"},
+          {left:"Pendedel", right:"Membuka jahitan yang salah"},
+        ]},
+      { id:"motifsort", icon:"🌸", title:"Motif Tekstil Sort", desc:"Seret setiap motif ke kategori Geometris atau Alami.", reward:20, type:"sort", playCount:6,
+        categories:["Geometris","Alami"],
+        items:[
+          {text:"Garis-garis", cat:"Geometris"},
+          {text:"Kotak-kotak", cat:"Geometris"},
+          {text:"Segitiga", cat:"Geometris"},
+          {text:"Motif bunga", cat:"Alami"},
+          {text:"Motif daun", cat:"Alami"},
+          {text:"Motif hewan", cat:"Alami"},
+        ]},
+    ]
+  },
+};
+
+/* ---------- DATA: OUTFITS ---------- */
+const OUTFITS = {
+  body: [
+    { id:"body-default", name:"Seragam Dasar", color:"#4fe0c9", price:0 },
+    { id:"body-jaket", name:"Jaket Bengkel", color:"#5b5be0", price:40 },
+    { id:"body-lab", name:"Jas Lab", color:"#e8e8ef", price:60 },
+    { id:"body-hero", name:"Skill Champion", color:"#f2b84b", price:100 },
+  ],
+  head: [
+    { id:"head-default", name:"Tanpa Aksesoris", emoji:"", price:0 },
+    { id:"head-cap", name:"Topi Bengkel", emoji:"🧢", price:30 },
+    { id:"head-goggles", name:"Kacamata Safety", emoji:"🥽", price:45 },
+    { id:"head-crown", name:"Mahkota Juara", emoji:"👑", price:90 },
+  ]
+};
+
+/* ---------- STATE ---------- */
+let state = {
+  theme: "dark",
+  user: null,
+  accountKey: null,
+  coins: 0,
+  completedGames: new Set(),
+  equipped: { body: "body-default", head: "head-default" },
+  ownedOutfits: new Set(["body-default","head-default"]),
+  currentGame: null,
+  outfitTab: "body",
+  askedHistory: {},
+  lastSourceAI: false,
+};
+
+/* ---------- ACCOUNT REGISTRY (satu nama = satu jurusan, terkunci) ---------- */
+// Ini menggantikan tabel `users` di MySQL untuk prototipe (lihat schema.sql).
+// Begitu sebuah nama pernah mendaftar dengan jurusan tertentu, jurusan itu
+// terkunci untuk nama tersebut — tidak bisa diganti lagi supaya tidak ada
+// yang gonta-ganti jurusan hanya untuk mengumpulkan koin dari semua game.
+let accounts = {};
+function normalizeName(n){ return (n || "").trim().toLowerCase().replace(/\s+/g, " "); }
+function checkExistingAccount(){
+  const nama = document.getElementById("input-nama").value;
+  const key = normalizeName(nama);
+  const sel = document.getElementById("input-jurusan");
+  const note = document.getElementById("jurusan-lock-note");
+  if(key && accounts[key]){
+    sel.value = accounts[key].jurusan;
+    sel.disabled = true;
+    note.style.display = "block";
+    note.textContent = `🔒 Nama ini sudah terdaftar di jurusan ${MAJORS[accounts[key].jurusan].label}. Jurusan tidak bisa diganti.`;
+  } else {
+    sel.disabled = false;
+    note.style.display = "none";
+  }
+}
+
+/* ---------- NAVIGATION ---------- */
+function goTo(screenId){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(screenId).classList.add("active");
+}
+function exitWeb(){ showToast("Terima kasih! Sampai jumpa lagi 👋"); }
+
+function openSettings(){ document.getElementById("settings-modal").classList.add("active"); reflectTheme(); }
+function closeSettings(){ document.getElementById("settings-modal").classList.remove("active"); }
+function setTheme(mode){ state.theme = mode; document.body.classList.toggle("light", mode === "light"); reflectTheme(); }
+function reflectTheme(){
+  document.getElementById("opt-dark").classList.toggle("selected", state.theme === "dark");
+  document.getElementById("opt-light").classList.toggle("selected", state.theme === "light");
+}
+
+function populateJurusanSelect(){
+  const sel = document.getElementById("input-jurusan");
+  sel.innerHTML = "";
+  Object.entries(MAJORS).forEach(([key, m]) => {
+    const opt = document.createElement("option");
+    opt.value = key; opt.textContent = m.label;
+    sel.appendChild(opt);
+  });
+}
+function submitLogin(){
+  const nama = document.getElementById("input-nama").value.trim();
+  let jurusan = document.getElementById("input-jurusan").value;
+  const kelas = document.getElementById("input-kelas").value.trim();
+  const err = document.getElementById("login-error");
+  if(!nama || !jurusan || !kelas){ err.style.display = "block"; return; }
+  err.style.display = "none";
+
+  const key = normalizeName(nama);
+  let account = accounts[key];
+  if(account){
+    jurusan = account.jurusan; // kunci: paksa pakai jurusan yang sudah terdaftar untuk nama ini
+  } else {
+    account = {
+      jurusan,
+      coins: 0,
+      completedGames: [],
+      equipped: { body: "body-default", head: "head-default" },
+      ownedOutfits: ["body-default","head-default"],
+      askedHistory: {},
+    };
+    accounts[key] = account;
+  }
+
+  state.user = { nama, jurusan, kelas };
+  state.accountKey = key;
+  state.coins = account.coins;
+  state.completedGames = new Set(account.completedGames);
+  state.equipped = { ...account.equipped };
+  state.ownedOutfits = new Set(account.ownedOutfits);
+  state.askedHistory = JSON.parse(JSON.stringify(account.askedHistory));
+
+  document.getElementById("topbar-major").textContent = MAJORS[jurusan].label;
+  document.getElementById("games-sub").textContent = MAJORS[jurusan].desc + " Setiap game punya cara main berbeda.";
+  goTo("screen-app");
+  showView("games");
+  renderGames();
+  renderProfile();
+  updateCoinDisplay();
+}
+function saveAccountProgress(){
+  if(!state.accountKey || !accounts[state.accountKey]) return;
+  accounts[state.accountKey] = {
+    jurusan: state.user.jurusan,
+    coins: state.coins,
+    completedGames: Array.from(state.completedGames),
+    equipped: { ...state.equipped },
+    ownedOutfits: Array.from(state.ownedOutfits),
+    askedHistory: JSON.parse(JSON.stringify(state.askedHistory)),
+  };
+}
+function logout(){
+  saveAccountProgress();
+  state.user = null;
+  state.accountKey = null;
+  document.getElementById("input-nama").value = "";
+  document.getElementById("input-kelas").value = "";
+  document.getElementById("input-jurusan").disabled = false;
+  document.getElementById("jurusan-lock-note").style.display = "none";
+  goTo("screen-landing");
+}
+
+function showView(view){
+  document.getElementById("view-games").style.display = view === "games" ? "block" : "none";
+  document.getElementById("view-play").style.display = view === "play" ? "block" : "none";
+  document.getElementById("view-profile").style.display = view === "profile" ? "block" : "none";
+  document.getElementById("nav-games").classList.toggle("active", view === "games");
+  document.getElementById("nav-profile").classList.toggle("active", view === "profile");
+  if(view === "profile") renderProfile();
+}
+
+/* ---------- GAMES LIST ---------- */
+function renderGames(){
+  const major = MAJORS[state.user.jurusan];
+  const grid = document.getElementById("game-grid");
+  grid.innerHTML = "";
+  major.games.forEach(g => {
+    const done = state.completedGames.has(g.id);
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.innerHTML = `
+      <div class="game-icon">${g.icon}</div>
+      <h3>${g.title}</h3>
+      <p>${g.desc}</p>
+      <div class="game-meta">
+        <span class="type-badge">${TYPE_LABEL[g.type] || "Kuis"}</span>
+        <span class="badge-reward">+${g.reward} koin</span>
+        ${done ? '<span class="badge-done">Selesai ✓</span>' : ''}
+      </div>
+      <button class="btn btn-primary">${done ? "Main Lagi" : "Main"}</button>
+    `;
+    card.querySelector("button").onclick = () => startGame(g.id);
+    grid.appendChild(card);
+  });
+}
+
+/* ---------- DISPATCHER ---------- */
+function startGame(gameId){
+  const major = MAJORS[state.user.jurusan];
+  const game = major.games.find(g => g.id === gameId);
+  showView("play");
+  if(game.type === "match") return runMatchGame(game);
+  if(game.type === "sequence") return runSequenceGame(game);
+  if(game.type === "memory") return runMemoryGame(game);
+  if(game.type === "typing") return runTypingGame(game);
+  if(game.type === "sort") return runSortGame(game);
+  return runQuizOrColorGame(game);
+}
+
+/* ---------- QUIZ (AI) & COLOR ---------- */
+async function fetchAIQuestions(game, majorLabel, count, history){
+  const avoidList = history.slice(-15);
+  const prompt = `Kamu adalah pembuat soal kuis edukatif untuk siswa SMK jurusan ${majorLabel}, khusus topik "${game.title}" (${game.desc}).
+Buat tepat ${count} soal pilihan ganda BARU dalam Bahasa Indonesia, masing-masing dengan 4 pilihan jawaban dan hanya 1 yang benar.
+Soal harus singkat, jelas, sesuai level SMK, dan relevan dengan topik di atas.
+JANGAN membuat soal yang sama atau mirip dengan daftar berikut (soal yang sudah pernah dipakai): ${JSON.stringify(avoidList)}.
+Balas HANYA dengan JSON array valid, tanpa penjelasan apa pun, tanpa markdown, persis format ini:
+[{"q":"teks pertanyaan","opts":["pilihan1","pilihan2","pilihan3","pilihan4"],"a":0}]
+"a" adalah index (0-3) dari pilihan yang benar.`;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, messages: [{ role: "user", content: prompt }] })
+  });
+  if(!response.ok) throw new Error("API error " + response.status);
+  const data = await response.json();
+  const text = (data.content || []).map(c => c.text || "").join("");
+  const clean = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const parsed = JSON.parse(clean);
+  const valid = parsed.filter(q => q && q.q && Array.isArray(q.opts) && q.opts.length === 4 && typeof q.a === "number");
+  if(!valid.length) throw new Error("Format hasil AI tidak sesuai");
+  return valid;
+}
+
+function pickQuizNoRepeat(game, count, history){
+  let available = game.pool.filter(q => !history.includes(q.q));
+  if(available.length < count){ history = []; available = game.pool; }
+  const chosen = shuffleArray(available).slice(0, count);
+  state.askedHistory[game.id] = history.concat(chosen.map(q => q.q)).slice(-40);
+  return chosen.map(prepareQuizQuestion);
+}
+function pickColorRoundsNoRepeat(game, count, history){
+  let available = game.pool.filter(r => !history.includes(r.target));
+  if(available.length < count){ history = []; available = game.pool; }
+  const chosen = shuffleArray(available).slice(0, count);
+  state.askedHistory[game.id] = history.concat(chosen.map(r => r.target)).slice(-40);
+  return chosen.map(prepareColorRound);
+}
+async function buildSession(game, count){
+  const history = state.askedHistory[game.id] || [];
+  if(game.type === "color"){ state.lastSourceAI = false; return pickColorRoundsNoRepeat(game, count, history); }
+  try{
+    const majorLabel = MAJORS[state.user.jurusan].label;
+    const aiQuestions = await fetchAIQuestions(game, majorLabel, count, history);
+    state.askedHistory[game.id] = history.concat(aiQuestions.map(q => q.q)).slice(-40);
+    state.lastSourceAI = true;
+    return aiQuestions.map(prepareQuizQuestion);
+  }catch(e){
+    console.warn("Soal AI tidak tersedia, memakai bank soal lokal:", e.message);
+    state.lastSourceAI = false;
+    return pickQuizNoRepeat(game, count, history);
+  }
+}
+
+async function runQuizOrColorGame(game){
+  const container = document.getElementById("game-play-container");
+  container.innerHTML = `<h2>${game.icon} ${game.title}</h2><div class="loading-block"><div class="spinner"></div>Menyiapkan soal...</div>`;
+  const count = game.playCount || (game.pool ? game.pool.length : 5);
+  const session = await buildSession(game, count);
+  state.currentGame = { def: game, index: 0, correct: 0, session };
+  renderGameStep();
+}
+
+function renderGameStep(){
+  const { def, index, session } = state.currentGame;
+  const container = document.getElementById("game-play-container");
+  const total = session.length;
+  if(index >= total){ finishGame(); return; }
+
+  const sourceTag = def.type === "color" ? "" :
+    `<span class="source-tag ${state.lastSourceAI ? 'ai' : ''}">${state.lastSourceAI ? '🤖 Soal AI' : '📚 Bank soal lokal'}</span>`;
+
+  container.innerHTML = `
+    <h2>${def.icon} ${def.title}${sourceTag}</h2>
+    <div class="progress-line">Soal ${index+1} dari ${total}</div>
+    <div class="question-block" id="qblock"></div>
+  `;
+  const qblock = document.getElementById("qblock");
+
+  if(def.type === "color"){
+    const round = session[index];
+    qblock.innerHTML = `
+      <p class="q">Pilih warna yang paling cocok dengan warna target berikut:</p>
+      <div class="color-opt" style="background:${round.target}; margin-bottom:16px; height:70px;"></div>
+      <div class="color-opt-list" id="opt-list"></div>
+    `;
+    const list = document.getElementById("opt-list");
+    round.options.forEach(hex => {
+      const b = document.createElement("button");
+      b.className = "color-opt";
+      b.style.background = hex;
+      b.onclick = () => answerQuizLike(hex === round.target, b, list);
+      list.appendChild(b);
+    });
+  } else {
+    const q = session[index];
+    qblock.innerHTML = `<p class="q">${q.q}</p><div class="opt-list" id="opt-list"></div>`;
+    const list = document.getElementById("opt-list");
+    q.opts.forEach((opt, i) => {
+      const b = document.createElement("button");
+      b.className = "opt";
+      b.textContent = opt;
+      b.onclick = () => answerQuizLike(i === q.a, b, list);
+      list.appendChild(b);
+    });
+  }
+}
+function answerQuizLike(isCorrect, btn, list){
+  Array.from(list.children).forEach(b => b.disabled = true);
+  if(btn.classList.contains("opt")) btn.classList.add(isCorrect ? "correct" : "wrong");
+  else btn.style.outline = isCorrect ? "3px solid var(--accent)" : "3px solid var(--danger)";
+  if(isCorrect) state.currentGame.correct++;
+  setTimeout(() => { state.currentGame.index++; renderGameStep(); }, 700);
+}
+function finishGame(){
+  const { def, correct, session } = state.currentGame;
+  finishInteractiveGame(def, correct, session.length);
+}
+
+/* ---------- MATCH GAME ---------- */
+function runMatchGame(game){
+  const history = state.askedHistory[game.id] || [];
+  const count = Math.min(game.playCount || game.pairs.length, game.pairs.length);
+  let available = game.pairs.filter(p => !history.includes(p.left));
+  if(available.length < count) available = game.pairs;
+  const chosen = shuffleArray(available).slice(0, count);
+  state.askedHistory[game.id] = chosen.map(p => p.left);
+
+  const leftItems = shuffleArray(chosen.map(p => p.left));
+  const rightItems = shuffleArray(chosen.map(p => p.right));
+  const correctMap = {}; chosen.forEach(p => correctMap[p.left] = p.right);
+
+  state.currentGame = { def: game, correctMap, matched: new Set(), selectedLeft: null, mistakes: 0, total: chosen.length };
+  renderMatchGame(leftItems, rightItems);
+}
+function renderMatchGame(leftItems, rightItems){
+  const cg = state.currentGame;
+  const container = document.getElementById("game-play-container");
+  container.innerHTML = `
+    <h2>${cg.def.icon} ${cg.def.title}</h2>
+    <div class="progress-line">Seret item di kiri ke pasangannya di kanan (atau klik kiri lalu klik kanan).</div>
+    <div class="match-board"><div class="match-col" id="match-left"></div><div class="match-col" id="match-right"></div></div>
+  `;
+  const leftCol = document.getElementById("match-left");
+  const rightCol = document.getElementById("match-right");
+  leftItems.forEach(text => {
+    const b = document.createElement("button");
+    b.className = "match-item"; b.textContent = "⠿ " + text; b.dataset.text = text;
+    b.draggable = true;
+    b.ondragstart = (e) => { e.dataTransfer.setData("text/plain", text); e.dataTransfer.effectAllowed = "move"; };
+    b.onclick = () => selectLeft(text, b);
+    leftCol.appendChild(b);
+  });
+  rightItems.forEach(text => {
+    const b = document.createElement("button");
+    b.className = "match-item"; b.textContent = text; b.dataset.text = text;
+    b.ondragover = (e) => e.preventDefault();
+    b.ondrop = (e) => {
+      e.preventDefault();
+      const leftText = e.dataTransfer.getData("text/plain");
+      const leftBtn = Array.from(document.querySelectorAll("#match-left .match-item")).find(x => x.dataset.text === leftText);
+      if(!leftBtn || leftBtn.classList.contains("locked")) return;
+      attemptMatch(leftText, text, leftBtn, b);
+    };
+    b.onclick = () => selectRight(text, b);
+    rightCol.appendChild(b);
+  });
+}
+function selectLeft(text, btn){
+  const cg = state.currentGame;
+  if(cg.matched.has(text) || btn.classList.contains("locked")) return;
+  document.querySelectorAll("#match-left .match-item").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  cg.selectedLeft = text;
+}
+function selectRight(text, btn){
+  const cg = state.currentGame;
+  if(!cg.selectedLeft || btn.classList.contains("locked")) return;
+  const leftBtn = Array.from(document.querySelectorAll("#match-left .match-item")).find(b => b.dataset.text === cg.selectedLeft);
+  attemptMatch(cg.selectedLeft, text, leftBtn, btn);
+}
+function attemptMatch(leftText, rightText, leftBtn, rightBtn){
+  const cg = state.currentGame;
+  if(cg.matched.has(leftText)) return;
+  const correctRight = cg.correctMap[leftText];
+  if(rightText === correctRight){
+    leftBtn.classList.add("locked","correct");
+    rightBtn.classList.add("locked","correct");
+    cg.matched.add(leftText);
+    cg.selectedLeft = null;
+    if(cg.matched.size === cg.total){
+      setTimeout(()=> finishInteractiveGame(cg.def, Math.max(0, cg.total - cg.mistakes), cg.total), 500);
+    }
+  } else {
+    cg.mistakes++;
+    leftBtn.classList.add("wrong-flash");
+    rightBtn.classList.add("wrong-flash");
+    setTimeout(()=>{ leftBtn.classList.remove("selected","wrong-flash"); rightBtn.classList.remove("wrong-flash"); }, 450);
+    cg.selectedLeft = null;
+  }
+}
+
+/* ---------- SEQUENCE GAME ---------- */
+function runSequenceGame(game){
+  const history = state.askedHistory[game.id] || [];
+  let available = game.scenarios.filter(s => !history.includes(s.title));
+  if(available.length === 0) available = game.scenarios;
+  const scenario = shuffleArray(available)[0];
+  state.askedHistory[game.id] = [scenario.title];
+  const shuffledSteps = shuffleArray(scenario.steps);
+  state.currentGame = { def: game, scenario, chosen: [], shuffledSteps };
+  renderSequenceGame();
+}
+function renderSequenceGame(){
+  const cg = state.currentGame;
+  const container = document.getElementById("game-play-container");
+  const remaining = cg.shuffledSteps.filter(s => !cg.chosen.includes(s));
+  const allPlaced = cg.chosen.length === cg.shuffledSteps.length;
+
+  container.innerHTML = `
+    <h2>${cg.def.icon} ${cg.def.title}</h2>
+    <div class="progress-line">${cg.scenario.title} — seret langkah ke daftar urutan (bisa diseret ulang untuk menukar posisi), atau klik untuk menambah.</div>
+    <div class="chosen-list" id="chosen-list"></div>
+    <div class="opt-list" id="remaining-list"></div>
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" id="undo-btn">Hapus Langkah Terakhir</button>
+      ${allPlaced ? '<button class="btn btn-primary" id="check-btn">Periksa Urutan</button>' : ''}
+    </div>
+  `;
+  const chosenList = document.getElementById("chosen-list");
+  chosenList.ondragover = (e) => e.preventDefault();
+  chosenList.ondrop = (e) => handleChosenDrop(e, undefined);
+
+  cg.chosen.forEach((s,i) => {
+    const div = document.createElement("div");
+    div.className = "chosen-step";
+    div.textContent = `${i+1}. ⠿ ${s}`;
+    div.draggable = true;
+    div.ondragstart = (e) => { e.dataTransfer.setData("text/plain", JSON.stringify({ index:i, source:"chosen" })); };
+    div.ondragover = (e) => e.preventDefault();
+    div.ondrop = (e) => { e.stopPropagation(); handleChosenDrop(e, i); };
+    chosenList.appendChild(div);
+  });
+
+  const remList = document.getElementById("remaining-list");
+  remaining.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "opt"; b.textContent = "⠿ " + s;
+    b.draggable = true;
+    b.ondragstart = (e) => { e.dataTransfer.setData("text/plain", JSON.stringify({ text:s, source:"pool" })); };
+    b.onclick = () => { cg.chosen.push(s); renderSequenceGame(); };
+    remList.appendChild(b);
+  });
+
+  const undoBtn = document.getElementById("undo-btn");
+  undoBtn.disabled = cg.chosen.length === 0;
+  undoBtn.onclick = () => { cg.chosen.pop(); renderSequenceGame(); };
+
+  if(allPlaced){
+    document.getElementById("check-btn").onclick = () => evaluateSequence();
+  }
+}
+function handleChosenDrop(e, targetIndex){
+  e.preventDefault();
+  let data;
+  try{ data = JSON.parse(e.dataTransfer.getData("text/plain")); }catch(err){ return; }
+  const cg = state.currentGame;
+  if(data.source === "pool"){
+    if(cg.chosen.includes(data.text)) return;
+    const insertAt = targetIndex === undefined ? cg.chosen.length : targetIndex;
+    cg.chosen.splice(insertAt, 0, data.text);
+  } else if(data.source === "chosen"){
+    const fromIndex = data.index;
+    let insertAt = targetIndex === undefined ? cg.chosen.length : targetIndex;
+    if(fromIndex === insertAt){ renderSequenceGame(); return; }
+    const [item] = cg.chosen.splice(fromIndex, 1);
+    if(fromIndex < insertAt) insertAt -= 1;
+    cg.chosen.splice(insertAt, 0, item);
+  }
+  renderSequenceGame();
+}
+function evaluateSequence(){
+  const cg = state.currentGame;
+  const correctOrder = cg.scenario.steps;
+  let correctCount = 0;
+  const rows = cg.chosen.map((s,i) => {
+    const ok = s === correctOrder[i];
+    if(ok) correctCount++;
+    return `<div class="chosen-step ${ok ? 'seq-correct':'seq-wrong'}">${i+1}. ${s}</div>`;
+  }).join("");
+  const container = document.getElementById("game-play-container");
+  container.innerHTML = `
+    <h2>${cg.def.icon} ${cg.def.title}</h2>
+    <div class="progress-line">${cg.scenario.title} — hasil urutanmu:</div>
+    <div class="chosen-list">${rows}</div>
+    <p style="margin-top:14px; color:var(--muted); font-size:12.5px;">Hijau = posisi tepat, merah = posisi belum tepat.</p>
+    <div class="landing-actions" style="margin-top:20px; justify-content:flex-start;">
+      <button class="btn btn-primary" id="seq-continue">Lanjutkan</button>
+    </div>
+  `;
+  document.getElementById("seq-continue").onclick = () => finishInteractiveGame(cg.def, correctCount, correctOrder.length);
+}
+
+/* ---------- MEMORY GAME ---------- */
+function runMemoryGame(game){
+  const count = Math.min(game.playCount || game.pairs.length, game.pairs.length);
+  const history = state.askedHistory[game.id] || [];
+  let available = game.pairs.filter(p => !history.includes(p.term));
+  if(available.length < count) available = game.pairs;
+  const chosen = shuffleArray(available).slice(0, count);
+  state.askedHistory[game.id] = chosen.map(p => p.term);
+
+  let cards = [];
+  chosen.forEach((p, i) => { cards.push({ id:'a'+i, pairId:i, text:p.term }); cards.push({ id:'b'+i, pairId:i, text:p.def }); });
+  cards = shuffleArray(cards);
+
+  state.currentGame = { def: game, cards, flipped: [], matchedPairs: new Set(), total: chosen.length, mistakes: 0 };
+  renderMemoryGame();
+}
+function renderMemoryGame(){
+  const cg = state.currentGame;
+  const container = document.getElementById("game-play-container");
+  container.innerHTML = `
+    <h2>${cg.def.icon} ${cg.def.title}</h2>
+    <div class="progress-line">Ketuk dua kartu untuk membuka dan mencocokkan istilah dengan penjelasannya.</div>
+    <div class="memory-grid" id="memory-grid"></div>
+  `;
+  const grid = document.getElementById("memory-grid");
+  cg.cards.forEach(card => {
+    const isMatched = cg.matchedPairs.has(card.pairId);
+    const isFlipped = cg.flipped.includes(card.id) || isMatched;
+    const slot = document.createElement("div");
+    slot.className = "memory-card-slot";
+    const inner = document.createElement("div");
+    inner.className = "memory-card-inner" + (isFlipped ? " flipped" : "") + (isMatched ? " matched" : "");
+    inner.innerHTML = `<div class="memory-face front">❓</div><div class="memory-face back">${card.text}</div>`;
+    inner.onclick = () => flipMemoryCard(card);
+    slot.appendChild(inner);
+    grid.appendChild(slot);
+  });
+}
+function flipMemoryCard(card){
+  const cg = state.currentGame;
+  if(cg.matchedPairs.has(card.pairId) || cg.flipped.includes(card.id) || cg.flipped.length >= 2) return;
+  cg.flipped.push(card.id);
+  renderMemoryGame();
+  if(cg.flipped.length === 2){
+    const [id1, id2] = cg.flipped;
+    const c1 = cg.cards.find(c => c.id === id1);
+    const c2 = cg.cards.find(c => c.id === id2);
+    if(c1.pairId === c2.pairId){
+      cg.matchedPairs.add(c1.pairId);
+      cg.flipped = [];
+      renderMemoryGame();
+      if(cg.matchedPairs.size === cg.total){
+        setTimeout(()=> finishInteractiveGame(cg.def, Math.max(0, cg.total - cg.mistakes), cg.total), 500);
+      }
+    } else {
+      cg.mistakes++;
+      setTimeout(()=>{ cg.flipped = []; renderMemoryGame(); }, 800);
+    }
+  }
+}
+
+/* ---------- TYPING GAME ---------- */
+function runTypingGame(game){
+  const count = Math.min(game.playCount || game.pool.length, game.pool.length);
+  const history = state.askedHistory[game.id] || [];
+  let available = game.pool.filter(q => !history.includes(q.scenario));
+  if(available.length < count) available = game.pool;
+  const chosen = shuffleArray(available).slice(0, count);
+  state.askedHistory[game.id] = chosen.map(q => q.scenario);
+  state.currentGame = { def: game, session: chosen, index: 0, correct: 0 };
+  renderTypingStep();
+}
+function renderTypingStep(){
+  const cg = state.currentGame;
+  if(cg.index >= cg.session.length){ finishInteractiveGame(cg.def, cg.correct, cg.session.length); return; }
+  const round = cg.session[cg.index];
+  const container = document.getElementById("game-play-container");
+  container.innerHTML = `
+    <h2>${cg.def.icon} ${cg.def.title}</h2>
+    <div class="progress-line">Kasus ${cg.index+1} dari ${cg.session.length}</div>
+    <div class="question-block">
+      <p class="q">${round.scenario}</p>
+      <div class="query-box">${round.query.replace("____", '<span class="blank">____</span>')}</div>
+      <input type="text" id="typing-input" class="typing-input" placeholder="Ketik jawabanmu di sini...">
+      <button class="btn btn-primary" id="typing-submit" style="margin-top:12px;">Jawab</button>
+      <p class="typing-feedback" id="typing-feedback"></p>
+    </div>
+  `;
+  document.getElementById("typing-submit").onclick = () => checkTypingAnswer(round);
+  document.getElementById("typing-input").addEventListener("keydown", e => { if(e.key === "Enter") checkTypingAnswer(round); });
+  document.getElementById("typing-input").focus();
+}
+function checkTypingAnswer(round){
+  const cg = state.currentGame;
+  const input = document.getElementById("typing-input");
+  const val = input.value.trim().toLowerCase();
+  const correct = val === round.answer.toLowerCase();
+  const feedback = document.getElementById("typing-feedback");
+  input.disabled = true;
+  document.getElementById("typing-submit").disabled = true;
+  if(correct){
+    cg.correct++;
+    feedback.textContent = "✓ Benar! Jawabannya: " + round.answer;
+    feedback.style.color = "var(--accent)";
+  } else {
+    feedback.textContent = "✗ Kurang tepat. Jawaban yang benar: " + round.answer;
+    feedback.style.color = "var(--danger)";
+  }
+  setTimeout(() => { cg.index++; renderTypingStep(); }, 1300);
+}
+
+/* ---------- SORT GAME (drag ke kategori) ---------- */
+function runSortGame(game){
+  const count = Math.min(game.playCount || game.items.length, game.items.length);
+  const history = state.askedHistory[game.id] || [];
+  let available = game.items.filter(it => !history.includes(it.text));
+  if(available.length < count) available = game.items;
+  const chosen = shuffleArray(available).slice(0, count);
+  state.askedHistory[game.id] = chosen.map(it => it.text);
+  const pool = shuffleArray(chosen.map(it => it.text));
+  state.currentGame = { def: game, items: chosen, pool, placed: {}, selectedItem: null, mistakes: 0, total: chosen.length };
+  renderSortGame();
+}
+function renderSortGame(){
+  const cg = state.currentGame;
+  const container = document.getElementById("game-play-container");
+  const remaining = cg.pool.filter(t => !(t in cg.placed));
+  container.innerHTML = `
+    <h2>${cg.def.icon} ${cg.def.title}</h2>
+    <div class="progress-line">Seret setiap item ke kategori yang tepat (atau klik item lalu klik kategorinya).</div>
+    <div class="sort-pool" id="sort-pool"></div>
+    <div class="sort-bins" id="sort-bins"></div>
+  `;
+  const poolEl = document.getElementById("sort-pool");
+  remaining.forEach(text => {
+    const b = document.createElement("button");
+    b.className = "sort-item" + (cg.selectedItem === text ? " selected" : "");
+    b.textContent = "⠿ " + text;
+    b.draggable = true;
+    b.ondragstart = (e) => e.dataTransfer.setData("text/plain", text);
+    b.onclick = () => { cg.selectedItem = (cg.selectedItem === text) ? null : text; renderSortGame(); };
+    poolEl.appendChild(b);
+  });
+  const binsEl = document.getElementById("sort-bins");
+  cg.def.categories.forEach(cat => {
+    const bin = document.createElement("div");
+    bin.className = "sort-bin";
+    const placedItems = Object.entries(cg.placed).filter(([,c]) => c === cat).map(([t]) => t);
+    bin.innerHTML = `<h4>${cat}</h4>` + placedItems.map(t => `<div class="sort-bin-item">${t}</div>`).join("");
+    bin.ondragover = (e) => e.preventDefault();
+    bin.ondrop = (e) => {
+      e.preventDefault();
+      const text = e.dataTransfer.getData("text/plain");
+      if(!text || (text in cg.placed)) return;
+      attemptSort(text, cat, bin);
+    };
+    bin.onclick = () => { if(cg.selectedItem) attemptSort(cg.selectedItem, cat, bin); };
+    binsEl.appendChild(bin);
+  });
+}
+function attemptSort(itemText, categoryName, binEl){
+  const cg = state.currentGame;
+  const itemDef = cg.items.find(i => i.text === itemText);
+  if(itemDef.cat === categoryName){
+    cg.placed[itemText] = categoryName;
+    cg.selectedItem = null;
+    renderSortGame();
+    if(Object.keys(cg.placed).length === cg.total){
+      setTimeout(()=> finishInteractiveGame(cg.def, Math.max(0, cg.total - cg.mistakes), cg.total), 400);
+    }
+  } else {
+    cg.mistakes++;
+    binEl.classList.add("wrong-flash");
+    setTimeout(()=> binEl.classList.remove("wrong-flash"), 400);
+    cg.selectedItem = null;
+    renderSortGame();
+  }
+}
+
+/* ---------- SHARED RESULT SCREEN ---------- */
+function finishInteractiveGame(def, correct, total){
+  const passed = correct >= Math.ceil(total / 2);
+  const container = document.getElementById("game-play-container");
+  let earned = 0;
+  const firstTime = !state.completedGames.has(def.id);
+  if(passed){
+    earned = firstTime ? def.reward : Math.round(def.reward / 2);
+    state.coins += earned;
+    state.completedGames.add(def.id);
+    updateCoinDisplay();
+    saveAccountProgress();
+  }
+  container.innerHTML = `
+    <div class="game-result">
+      <div class="big-coin">${passed ? "🏆" : "😕"}</div>
+      <h3>${passed ? "Berhasil diselesaikan!" : "Belum berhasil"}</h3>
+      <p>Skor kamu: ${correct} dari ${total} benar.${passed ? ` Kamu mendapat <b style="color:var(--gold)">+${earned} koin</b>.` : " Coba lagi untuk mendapatkan koin."} Ronde berikutnya akan berbeda dari yang barusan.</p>
+      <div class="landing-actions">
+        <button class="btn" onclick="showView('games'); renderGames();">Kembali ke Daftar Game</button>
+        <button class="btn btn-primary" onclick="startGame('${def.id}')">Main Lagi</button>
+      </div>
+    </div>
+  `;
+  if(passed) showToast(`+${earned} koin diperoleh!`);
+}
+
+/* ---------- PROFILE & OUTFITS ---------- */
+function renderProfile(){
+  if(!state.user) return;
+  const major = MAJORS[state.user.jurusan];
+  document.getElementById("profile-name").textContent = state.user.nama;
+  document.getElementById("profile-detail").innerHTML = `${major.label}<br>Kelas ${state.user.kelas}`;
+  document.getElementById("profile-coins").textContent = state.coins;
+  const bodyOutfit = OUTFITS.body.find(o => o.id === state.equipped.body);
+  const headOutfit = OUTFITS.head.find(o => o.id === state.equipped.head);
+  const stage = document.querySelector(".avatar-stage");
+  stage.style.setProperty("--avatar-color", bodyOutfit.color);
+  stage.style.setProperty("--avatar-outline", shadeColor(bodyOutfit.color, -0.35));
+  document.getElementById("avatar-accessory").textContent = headOutfit.emoji || "";
+  renderOutfitGrid();
+}
+function setOutfitTab(tab){
+  state.outfitTab = tab;
+  document.getElementById("tab-body").classList.toggle("active", tab === "body");
+  document.getElementById("tab-head").classList.toggle("active", tab === "head");
+  renderOutfitGrid();
+}
+function renderOutfitGrid(){
+  const grid = document.getElementById("outfit-grid");
+  grid.innerHTML = "";
+  OUTFITS[state.outfitTab].forEach(item => {
+    const owned = state.ownedOutfits.has(item.id);
+    const equipped = state.equipped[state.outfitTab] === item.id;
+    const canAfford = state.coins >= item.price;
+    const el = document.createElement("div");
+    el.className = "outfit-item";
+    const swatchContent = state.outfitTab === "body" ? "" : item.emoji;
+    el.innerHTML = `
+      <div class="outfit-swatch" style="background:${state.outfitTab === 'body' ? item.color : 'var(--panel)'}">${swatchContent}</div>
+      <h4>${item.name}</h4>
+      <div class="price">${item.price === 0 ? "Gratis" : "🪙 " + item.price}</div>
+      <button ${(!owned && !canAfford) ? "disabled" : ""} class="${equipped ? 'equipped' : ''}">${equipped ? "Dipakai" : owned ? "Pakai" : "Beli"}</button>
+    `;
+    el.querySelector("button").onclick = () => handleOutfitClick(item, owned, equipped);
+    grid.appendChild(el);
+  });
+}
+function handleOutfitClick(item, owned, equipped){
+  if(equipped) return;
+  if(!owned){
+    if(state.coins < item.price){ showToast("Koin belum cukup, selesaikan game lagi ya!"); return; }
+    state.coins -= item.price;
+    state.ownedOutfits.add(item.id);
+    updateCoinDisplay();
+    showToast(`${item.name} dibeli!`);
+  }
+  state.equipped[state.outfitTab] = item.id;
+  renderProfile();
+  saveAccountProgress();
+}
+function updateCoinDisplay(){
+  document.getElementById("coin-count").textContent = state.coins;
+  const pc = document.getElementById("profile-coins");
+  if(pc) pc.textContent = state.coins;
+}
+
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+populateJurusanSelect();
+reflectTheme();
+document.getElementById("input-nama").addEventListener("input", checkExistingAccount);
+</script>
+</body>
+</html>
